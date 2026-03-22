@@ -22,6 +22,7 @@ import random
 import platform
 import paramiko
 
+from concurrent.futures import ThreadPoolExecutor
 from fake_filesystem import FAKE_FS, FILE_CONTENTS
 from profiles import classify
 
@@ -39,6 +40,10 @@ RELEASE = platform.release()
 VERSION = platform.version()
 MACHINE = platform.machine()  
 PROCESSOR = platform.processor()
+
+
+executor = ThreadPoolExecutor(max_workers=50)
+
 
 UNAME_A = f"{SYSTEM} {NODE} {RELEASE} {VERSION} {MACHINE}"
 
@@ -108,9 +113,12 @@ def command_delay(cmd):
 
 
 # Writes attacker activity as JSON (SIEM-friendly)
+log_lock = threading.Lock()
+
 def log_event(data):
-    with open(LOG_FILE, "a") as f:
-        f.write(json.dumps(data) + "\n")
+    with log_lock:
+        with open(LOG_FILE, "a") as f:
+            f.write(json.dumps(data, separators=(",", ":")) + "\n")
 
 
 # Handles a single SSH connection from start to finish
@@ -147,7 +155,12 @@ def handle_connection(client, addr):
         try:
 
             # Receive encrypted command data
-            cmd = chan.recv(1024)
+            chan.settimeout(300)
+
+            try:
+                cmd = chan.recv(1024)
+            except socket.timeout:
+                break
             if not cmd:
                 break
 
@@ -291,7 +304,7 @@ def start_honeypot():
 
     while True:
         client, addr = sock.accept()
-        threading.Thread(target=handle_connection, args=(client, addr), daemon=True).start()
+        executor.submit(handle_connection, client, addr)
 
 
 if __name__ == "__main__":
