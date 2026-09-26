@@ -186,7 +186,8 @@ def handle_connection(client, addr):
         "source_ip": addr[0],
         "username": server.username,
         "password": server.password,
-        "commands": server.commands
+        "commands": server.commands,
+        "profile": classify(server.commands)
     })
 
 

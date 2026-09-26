@@ -10,6 +10,7 @@ Honeypot++ is a low-interaction SSH deception system designed for cybersecurity 
 - Credential harvesting & full command logging
 - Interactive fake shell with virtual filesystem
 - Safe, fully emulated (no real command execution)
+- Session classification (reconnaissance / payload delivery / bruteforce) attached to every logged session
 
 ## Tech Stack
 - Python 3
@@ -27,4 +28,4 @@ python honeypot.py
 python3 -m unittest discover tests
 ```
 
-Nine tests cover the fake shell command handler: cat, cd, pwd, whoami, an unknown command, and a missing or empty command.
+Nine tests cover the fake shell command handler: cat, cd, pwd, whoami, an unknown command, and a missing or empty command. Five more cover session classification (payload delivery, reconnaissance, bruteforce/automation, and an ordinary short session).

