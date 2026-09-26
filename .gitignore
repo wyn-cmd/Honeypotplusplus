@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+ssh_host_rsa.key
+logs/*.log

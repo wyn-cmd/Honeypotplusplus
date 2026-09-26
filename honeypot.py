@@ -256,7 +256,7 @@ def emulate_command(cmd, server=None):
         if not file_path.startswith("/"):
             file_path = f"{server.cwd.rstrip('/')}/{file_path}"
 
-        return FAKE_FILES.get(file_path, "Permission denied")
+        return FILE_CONTENTS.get(file_path, "Permission denied")
 
 
     # Echo

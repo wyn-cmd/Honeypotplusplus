@@ -21,3 +21,10 @@ Run the honeypot:
 ```bash
 python honeypot.py
 ```
+
+## Tests
+```bash
+python3 -m unittest discover tests
+```
+
+Nine tests cover the fake shell command handler: cat, cd, pwd, whoami, an unknown command, and a missing or empty command.
