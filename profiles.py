@@ -1,8 +1,12 @@
 def classify(commands):
+    if not commands:
+        return "unknown"
     if len(commands) > 10:
         return "bruteforce_or_automation"
-    if any(tool in cmd for cmd in commands for tool in ["wget", "curl", "nc"]):
+    tools = ("wget", "curl", "nc")
+    if any(tool in cmd for cmd in commands for tool in tools):
         return "payload_delivery"
-    if any(marker in cmd for cmd in commands for marker in ["cat /etc/passwd", "whoami", "uname"]):
+    markers = ("cat /etc/passwd", "whoami", "uname")
+    if any(marker in cmd for cmd in commands for marker in markers):
         return "reconnaissance"
     return "unknown"
