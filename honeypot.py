@@ -149,9 +149,16 @@ def handle_connection(client, addr):
     "$ "
     )
 
-    chan.send(banner.encode())
+    # Track how the session ended so a dropped client is not logged as a clean one
+    close_reason = None
 
-    while True:
+    try:
+        chan.send(banner.encode())
+    except (paramiko.SSHException, OSError) as exc:
+        # the client hung up before the banner landed; still log the attempt
+        close_reason = "banner_failed: %s" % exc
+
+    while close_reason is None:
         try:
 
             # Receive encrypted command data
@@ -160,8 +167,10 @@ def handle_connection(client, addr):
             try:
                 cmd = chan.recv(1024)
             except socket.timeout:
+                close_reason = "idle_timeout"
                 break
             if not cmd:
+                close_reason = "client_closed"
                 break
 
             # decode safely (ignore binary/control chars)
@@ -177,8 +186,15 @@ def handle_connection(client, addr):
             # Send output back to attacker
             chan.send(response.encode() + b"\n$ ")
 
-        except Exception:
-            break
+        except paramiko.SSHException as exc:
+            # a broken transport or channel ends the session; keep what was captured
+            close_reason = "ssh_error: %s" % exc
+        except OSError as exc:
+            # the client socket went away mid-command; keep what was captured
+            close_reason = "connection_lost: %s" % exc
+        except Exception as exc:
+            # an emulation bug must not discard the session log, so record it instead
+            close_reason = "internal_error: %s: %s" % (type(exc).__name__, exc)
 
     # Log full attacker session
     log_event({
@@ -187,7 +203,8 @@ def handle_connection(client, addr):
         "username": server.username,
         "password": server.password,
         "commands": server.commands,
-        "profile": classify(server.commands)
+        "profile": classify(server.commands),
+        "close_reason": close_reason
     })
 
 
