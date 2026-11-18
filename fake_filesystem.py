@@ -15,7 +15,7 @@ FAKE_FS = {
 # Fake file contents
 # Maps each file path to its string content
 FILE_CONTENTS = {
-    "/home/admin/notes.txt": "TODO: rotate SSH keys",
+    "/home/admin/notes.txt": "WARNING: exposed credentials. TODO: rotate SSH keys",
     "/home/admin/.bash_history": "ls\ncd /etc\ncat shadow\n",
     "/etc/passwd": "root:x:0:0:root:/root:/bin/bash",
     "/etc/shadow": "Permission denied"
